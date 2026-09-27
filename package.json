@@ -1,0 +1,24 @@
+{
+  "name": "argo-ocean-platform",
+  "version": "1.0.0",
+  "description": "ARGO Oceanographic AI Platform for Natural-Language Querying, Analysis, Prediction, and Visualization",
+  "scripts": {
+    "dev": "node scripts/startAll.js",
+    "start": "node scripts/startAll.js",
+    "seed": "cd server && npm run seed",
+    "test": "cd server && npm run test",
+    "test:e2e": "node server/tests/e2eApiTests.js",
+    "build": "cd client && npm run build"
+  },
+  "keywords": [
+    "argo",
+    "oceanography",
+    "nlp",
+    "machine-learning",
+    "mern",
+    "forecasting",
+    "climate"
+  ],
+  "author": "Oceanographic AI Systems Architect",
+  "license": "MIT"
+}
