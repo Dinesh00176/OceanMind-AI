@@ -28,7 +28,7 @@ export const authApi = {
 };
 
 export const queryApi = {
-  submitQuery: (query, context = null) => api.post('/query', { query, context }),
+  submitQuery: (query, context = null, mode = 'auto') => api.post('/query', { query, context, mode }),
   queryKnowledge: (query) => api.post('/query/knowledge', { query }),
   getKnowledgeSources: () => api.get('/query/knowledge/sources'),
 };

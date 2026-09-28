@@ -19,34 +19,37 @@ const RegionalBarChart = ({ chartData, parameter, parameters, unit }) => {
     );
   }
 
-  const isMulti = (parameters && parameters.length > 1) || 
-    (chartData.length > 0 && chartData[0].temperature !== undefined && chartData[0].salinity !== undefined);
+  const isMulti =
+    (parameters && parameters.length > 1) ||
+    (chartData.length > 0 &&
+      chartData[0].temperature !== undefined &&
+      chartData[0].salinity !== undefined);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-navy-900 border border-slate-700 p-3 rounded-lg shadow-xl text-xs space-y-1.5">
-          <p className="font-bold text-slate-200 text-sm">{data.region}</p>
+        <div className="bg-navy-900 border border-slate-700 p-3 rounded-xl shadow-xl text-xs space-y-1.5">
+          <p className="font-bold text-slate-100 text-sm">{data.region}</p>
           <div className="space-y-1">
             {data.temperature !== undefined && (
-              <p className="text-cyan-400">
-                Temperature: <span className="font-mono font-bold">{data.temperature} °C</span>
+              <p className="text-cyan-400 font-medium">
+                Temperature: <span className="font-bold">{data.temperature} °C</span>
               </p>
             )}
             {data.salinity !== undefined && (
-              <p className="text-emerald-400">
-                Salinity: <span className="font-mono font-bold">{data.salinity} PSU</span>
+              <p className="text-emerald-400 font-medium">
+                Salinity: <span className="font-bold">{data.salinity} PSU</span>
               </p>
             )}
             {data.mean !== undefined && !isMulti && (
-              <p className="text-cyan-400">
-                Mean {parameter}: <span className="font-mono font-bold">{data.mean} {unit}</span>
+              <p className="text-cyan-400 font-medium">
+                Mean {parameter}: <span className="font-bold">{data.mean} {unit}</span>
               </p>
             )}
             {data.min !== undefined && data.max !== undefined && (
               <p className="text-slate-300">
-                Range: <span className="font-mono">{data.min} to {data.max} {unit}</span>
+                Range: <span>{data.min} to {data.max} {unit}</span>
               </p>
             )}
             <p className="text-slate-400 text-[10px] pt-1 border-t border-slate-800">
@@ -62,10 +65,10 @@ const RegionalBarChart = ({ chartData, parameter, parameters, unit }) => {
   return (
     <div className="w-full flex flex-col space-y-3">
       <div className="flex items-center justify-between text-xs text-slate-400">
-        <span className="font-semibold text-slate-300 font-mono">
+        <span className="font-semibold text-slate-200">
           Cross-Basin Comparison {isMulti ? '(Temperature & Salinity)' : `(${parameter})`}
         </span>
-        <span className="font-mono text-cyan-400">
+        <span className="text-cyan-400 font-medium">
           {isMulti ? 'Units: °C & PSU' : `Unit: ${unit}`}
         </span>
       </div>
@@ -78,7 +81,7 @@ const RegionalBarChart = ({ chartData, parameter, parameters, unit }) => {
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
             <XAxis dataKey="region" stroke="#64748b" fontSize={12} tickLine={false} />
-            
+
             {isMulti ? (
               <>
                 <YAxis
@@ -130,7 +133,11 @@ const RegionalBarChart = ({ chartData, parameter, parameters, unit }) => {
                 <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }} />
                 <Bar
                   name={`Mean ${parameter} (${unit})`}
-                  dataKey={chartData[0]?.mean !== undefined ? 'mean' : (parameter || 'temperature')}
+                  dataKey={
+                    chartData[0]?.mean !== undefined
+                      ? 'mean'
+                      : parameter || 'temperature'
+                  }
                   fill="#0ea5e9"
                   radius={[6, 6, 0, 0]}
                   barSize={40}
@@ -153,59 +160,75 @@ const RegionalBarChart = ({ chartData, parameter, parameters, unit }) => {
 
       {/* Regional Comparison Structured Table */}
       <div className="rounded-xl border border-slate-800 bg-navy-950/70 p-3 mt-2">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs text-slate-300 font-semibold font-mono">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs text-slate-300 font-semibold">
           <span>Comparative Ocean Basin Metrics</span>
-          <span className="text-[11px] text-slate-400">Basins Compared: {chartData.length}</span>
+          <span className="text-[11px] text-slate-400">
+            Basins Compared: {chartData.length}
+          </span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
+          <table className="w-full text-left text-xs">
             <thead>
               <tr className="text-slate-400 border-b border-slate-800/80">
-                <th className="py-1.5 px-2">Basin</th>
+                <th className="py-2 px-3 font-semibold">Basin</th>
                 {isMulti ? (
                   <>
-                    <th className="py-1.5 px-2 text-cyan-400">Mean Temp (°C)</th>
-                    <th className="py-1.5 px-2 text-emerald-400">Mean Salinity (PSU)</th>
+                    <th className="py-2 px-3 font-semibold text-cyan-400">Mean Temp (°C)</th>
+                    <th className="py-2 px-3 font-semibold text-emerald-400">Mean Salinity (PSU)</th>
                   </>
                 ) : (
                   <>
-                    <th className="py-1.5 px-2 text-cyan-400">Mean {parameter} ({unit})</th>
-                    <th className="py-1.5 px-2 text-slate-300">Min / Max</th>
+                    <th className="py-2 px-3 font-semibold text-cyan-400">
+                      Mean {parameter} ({unit})
+                    </th>
+                    <th className="py-2 px-3 font-semibold text-slate-300">Min / Max</th>
                   </>
                 )}
-                <th className="py-1.5 px-2 text-slate-300">Profiles</th>
-                <th className="py-1.5 px-2 text-slate-300">Floats</th>
-                <th className="py-1.5 px-2 text-slate-400">Observations</th>
+                <th className="py-2 px-3 font-semibold text-slate-300">Profiles</th>
+                <th className="py-2 px-3 font-semibold text-slate-300">Floats</th>
+                <th className="py-2 px-3 font-semibold text-slate-400">Observations</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {chartData.map((row) => (
                 <tr key={row.region} className="hover:bg-slate-800/40 transition">
-                  <td className="py-1.5 px-2 font-bold text-slate-200">{row.region}</td>
+                  <td className="py-1.5 px-3 font-bold text-slate-200">{row.region}</td>
                   {isMulti ? (
                     <>
-                      <td className="py-1.5 px-2 text-cyan-300 font-semibold">
-                        {row.temperature !== undefined && row.temperature !== null ? `${row.temperature} °C` : '—'}
+                      <td className="py-1.5 px-3 text-cyan-300 font-medium">
+                        {row.temperature !== undefined && row.temperature !== null
+                          ? `${row.temperature} °C`
+                          : '—'}
                       </td>
-                      <td className="py-1.5 px-2 text-emerald-300 font-semibold">
-                        {row.salinity !== undefined && row.salinity !== null ? `${row.salinity} PSU` : '—'}
+                      <td className="py-1.5 px-3 text-emerald-300 font-medium">
+                        {row.salinity !== undefined && row.salinity !== null
+                          ? `${row.salinity} PSU`
+                          : '—'}
                       </td>
                     </>
                   ) : (
                     <>
-                      <td className="py-1.5 px-2 text-cyan-300 font-semibold">
+                      <td className="py-1.5 px-3 text-cyan-300 font-medium">
                         {row.mean ?? row[parameter] ?? '—'} {unit}
                       </td>
-                      <td className="py-1.5 px-2 text-slate-300">
-                        {row.min !== undefined && row.max !== undefined ? `${row.min} to ${row.max}` : '—'}
+                      <td className="py-1.5 px-3 text-slate-300">
+                        {row.min !== undefined && row.max !== undefined
+                          ? `${row.min} to ${row.max}`
+                          : '—'}
                       </td>
                     </>
                   )}
-                  <td className="py-1.5 px-2 text-slate-300">{row.profileCount || row.count || 0}</td>
-                  <td className="py-1.5 px-2 text-slate-300 font-semibold text-cyan-300">
-                    {row.floatCount ? `${row.floatCount} ${row.floatCount === 1 ? 'float' : 'floats'}` : '1 float'}
+                  <td className="py-1.5 px-3 text-slate-300">
+                    {row.profileCount || row.count || 0}
                   </td>
-                  <td className="py-1.5 px-2 text-slate-400">{row.observationCount || row.count || 0}</td>
+                  <td className="py-1.5 px-3 text-cyan-300 font-medium">
+                    {row.floatCount
+                      ? `${row.floatCount} ${row.floatCount === 1 ? 'float' : 'floats'}`
+                      : '1 float'}
+                  </td>
+                  <td className="py-1.5 px-3 text-slate-400">
+                    {row.observationCount || row.count || 0}
+                  </td>
                 </tr>
               ))}
             </tbody>

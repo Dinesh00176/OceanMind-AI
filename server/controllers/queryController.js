@@ -56,7 +56,7 @@ function generateFollowUpSuggestions(parsed, analysis, prediction) {
 // @access  Public / Optional Auth
 const processQuery = async (req, res) => {
   try {
-    const { query, context } = req.body;
+    const { query, context, mode: explicitMode } = req.body;
 
     if (!query || typeof query !== 'string' || !query.trim()) {
       return res.status(400).json({
@@ -68,7 +68,99 @@ const processQuery = async (req, res) => {
     // Step 1: Structured NLP Parsing
     const parsed = await pythonBridge.parseNLP(query.trim(), context);
 
-    // Guardrail: Unrelated query check
+    const activeCtxStr = parsed.active_context || (
+      parsed.intent === 'knowledge' || parsed.mode === 2 || explicitMode === 'rag' || explicitMode === 2
+        ? 'Global / ARGO Knowledge'
+        : `${parsed.region || 'Global'}${parsed.depth_val !== null && parsed.depth_val !== undefined ? ` @ ${parsed.depth_val}m` : ''} • ${parsed.parameter || 'temperature'}`
+    );
+
+    console.log(`
+[NLP]
+Query: ${query.trim()}
+Intent: ${parsed.intent}
+Mode: ${explicitMode || parsed.mode || (parsed.intent === 'knowledge' ? 2 : (parsed.intent === 'hybrid' ? 3 : 1))}
+Explicit Mode: ${explicitMode || 'auto'}
+Requires RAG: ${!!parsed.requiresRAG}
+Requires Data Analysis: ${!!parsed.requiresDataAnalysis}
+Context Inheritance: ${!!parsed.context_inherited}
+Active Context: ${activeCtxStr}
+    `.trim());
+
+    // -------------------------------------------------------------
+    // EXPLICIT MODE 2: RAG KNOWLEDGE MODE
+    // -------------------------------------------------------------
+    if (explicitMode === 'rag' || explicitMode === 'knowledge' || explicitMode === 2) {
+      if (parsed.intent === 'unrelated' || parsed.valid === false) {
+        return res.json({
+          success: true,
+          type: 'unrelated',
+          queryMode: 'rag_knowledge',
+          answer: 'This question is not related to ARGO oceanographic knowledge or documentation. Please ask about ARGO floats, CTD sensors, variable buoyancy engines, GDAC architecture, or ocean physical dynamics.',
+          keyFindings: ['Query is outside ARGO oceanographic knowledge domain.'],
+          dataUsed: null,
+          visualization: null,
+          prediction: null,
+          suggestedFollowUps: [
+            'What is an ARGO float?',
+            'How does an ARGO float work?',
+            'What is GDAC?',
+            'What are ARGO quality-control procedures?',
+          ],
+        });
+      }
+
+      const ragResult = await pythonBridge.queryKnowledge(query.trim(), 4);
+
+      if (!ragResult.success || !ragResult.sources || ragResult.sources.length === 0) {
+        return res.json({
+          success: true,
+          type: 'unrelated',
+          queryMode: 'rag_knowledge',
+          answer: 'This question is not related to ARGO oceanographic knowledge or documentation. Please ask about ARGO floats, CTD sensors, variable buoyancy engines, GDAC architecture, or ocean physical dynamics.',
+          keyFindings: ['Query is outside ARGO oceanographic knowledge domain.'],
+          dataUsed: null,
+          visualization: null,
+          prediction: null,
+          suggestedFollowUps: ragResult.suggested_topics || [
+            'What is an ARGO float?',
+            'How does an ARGO float work?',
+            'What is GDAC?',
+            'What are ARGO quality-control procedures?',
+          ],
+        });
+      }
+
+      return res.json({
+        success: true,
+        type: 'knowledge',
+        queryMode: 'rag_knowledge',
+        answer: ragResult.answer,
+        keyPrinciples: ragResult.key_principles || [],
+        sources: ragResult.sources || [],
+        dataUsed: null,
+        visualization: null,
+        prediction: null,
+        limitations: 'Information grounded directly in official international ARGO documentation and published oceanographic reference literature.',
+        suggestedFollowUps: ragResult.suggested_topics || [
+          'What is an ARGO float?',
+          'How does an ARGO float work?',
+          'What is GDAC?',
+          'What are ARGO quality-control procedures?',
+        ],
+        context: {
+          intent: 'knowledge',
+          mode: 2,
+          topic: query.trim(),
+          activeContext: 'Global / ARGO Knowledge',
+          region: null,
+          depth: null,
+          parameter: null,
+          parameters: [],
+        },
+      });
+    }
+
+    // Guardrail: Unrelated query check (Auto & Data Modes)
     if (parsed.intent === 'unrelated' || parsed.valid === false) {
       return res.json({
         success: true,
@@ -87,7 +179,7 @@ const processQuery = async (req, res) => {
       });
     }
 
-    // Guardrail: Ambiguous query handling
+    // Guardrail: Ambiguous query handling (e.g. "the temp at ocean")
     if (parsed.is_ambiguous) {
       return res.json({
         success: true,
@@ -109,8 +201,27 @@ const processQuery = async (req, res) => {
     // ========================================================
     // MODE 2: RAG KNOWLEDGE QUERY (Conceptual / Procedural)
     // ========================================================
-    if (parsed.intent === 'knowledge' || (parsed.requiresRAG && !parsed.requiresDataAnalysis)) {
+    if (parsed.intent === 'knowledge' || parsed.mode === 2 || (parsed.requiresRAG && !parsed.requiresDataAnalysis)) {
       const ragResult = await pythonBridge.queryKnowledge(query, 4);
+
+      if (!ragResult.success || !ragResult.sources || ragResult.sources.length === 0) {
+        return res.json({
+          success: true,
+          type: 'unrelated',
+          queryMode: 'rag_knowledge',
+          answer: 'This question is not related to ARGO oceanographic knowledge or documentation. Please ask about ARGO floats, CTD sensors, variable buoyancy engines, GDAC architecture, or ocean physical dynamics.',
+          keyFindings: ['Query is outside ARGO oceanographic knowledge domain.'],
+          dataUsed: null,
+          visualization: null,
+          prediction: null,
+          suggestedFollowUps: ragResult.suggested_topics || [
+            'What is an ARGO float?',
+            'How does an ARGO float work?',
+            'What is GDAC?',
+            'What are ARGO quality-control procedures?',
+          ],
+        });
+      }
 
       const responsePayload = {
         success: true,
@@ -131,7 +242,13 @@ const processQuery = async (req, res) => {
         ],
         context: {
           intent: 'knowledge',
-          topic: query,
+          mode: 2,
+          topic: query.trim(),
+          activeContext: 'Global / ARGO Knowledge',
+          region: null,
+          depth: null,
+          parameter: null,
+          parameters: [],
         },
       };
 
@@ -281,9 +398,13 @@ const processQuery = async (req, res) => {
           'What are ARGO quality-control procedures?',
         ],
         context: {
+          intent: 'hybrid',
+          mode: 3,
           region: targetRegion,
           parameter: primaryParam,
+          parameters: requestedParams,
           depth: targetDepth,
+          activeContext: `${targetRegion} @ ${targetDepth}m • ${primaryParam} (Hybrid)`,
           start_year: timeRangeInfo.start_year,
           end_year: timeRangeInfo.end_year,
         },
@@ -422,10 +543,14 @@ const processQuery = async (req, res) => {
         limitations: 'Regional comparisons represent aggregated ARGO profiling observations across selected ocean basins.',
         suggestedFollowUps: generateFollowUpSuggestions(parsed, compStats, null),
         context: {
+          intent: 'comparison',
+          mode: 1,
           region: regions[0],
+          compare_regions: regions,
           parameter: primaryParam,
           parameters: requestedParams,
           depth: targetDepth,
+          activeContext: `${regions.join(' vs ')} @ ${targetDepth}m • ${primaryParam}`,
         },
       };
 
@@ -754,10 +879,14 @@ const processQuery = async (req, res) => {
       limitations: 'Observations reflect free-drifting profiling floats subject to ocean current advection. Results are grounded strictly in recorded ARGO CTD sensor cycles.',
       suggestedFollowUps: generateFollowUpSuggestions(parsed, analysisResult, predictionResult),
       context: {
+        intent: parsed.intent || 'average',
+        mode: 1,
         region: parsed.region,
         parameter: primaryParam,
         parameters: requestedParams,
         depth: depthInfo.value,
+        depth_obj: depthInfo,
+        activeContext: `${parsed.region}${depthInfo.value !== null && depthInfo.value !== undefined ? ` @ ${depthInfo.value}m` : ''} • ${primaryParam}`,
         start_year: timeRangeInfo.start_year,
         end_year: timeRangeInfo.end_year,
       },
@@ -811,6 +940,25 @@ const handleKnowledgeQuery = async (req, res) => {
     }
 
     const ragResult = await pythonBridge.queryKnowledge(query.trim(), 4);
+    if (!ragResult.success || !ragResult.sources || ragResult.sources.length === 0) {
+      return res.json({
+        success: true,
+        type: 'unrelated',
+        queryMode: 'rag_knowledge',
+        answer: 'This question is not related to ARGO oceanographic knowledge or documentation. Please ask about ARGO floats, CTD sensors, variable buoyancy engines, GDAC architecture, or ocean physical dynamics.',
+        keyFindings: ['Query is outside ARGO oceanographic knowledge domain.'],
+        dataUsed: null,
+        visualization: null,
+        prediction: null,
+        suggestedFollowUps: ragResult.suggested_topics || [
+          'What is an ARGO float?',
+          'How does an ARGO float work?',
+          'What is GDAC?',
+          'What are ARGO quality-control procedures?',
+        ],
+      });
+    }
+
     return res.json({
       success: true,
       type: 'knowledge',

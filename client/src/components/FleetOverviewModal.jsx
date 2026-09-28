@@ -50,7 +50,7 @@ const FleetOverviewModal = ({ isOpen, onClose }) => {
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-cyan-400">
             <Globe className="w-5 h-5" />
-            <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+            <span className="text-xs uppercase tracking-wider font-semibold">
               Observational Array
             </span>
           </div>
@@ -66,32 +66,32 @@ const FleetOverviewModal = ({ isOpen, onClose }) => {
         {metadata && (
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-navy-950 rounded-xl p-3 border border-slate-800 space-y-0.5">
-              <span className="text-[11px] text-slate-400">Total Profiles</span>
-              <p className="text-xl font-bold font-mono text-cyan-400">
+              <span className="text-xs text-slate-400">Total Profiles</span>
+              <p className="text-xl font-bold text-cyan-400">
                 {metadata.totalProfiles}
               </p>
-              <span className="text-[10px] text-slate-500">CTD Sensor Cycles</span>
+              <span className="text-[10px] text-slate-400">CTD Sensor Cycles</span>
             </div>
             <div className="bg-navy-950 rounded-xl p-3 border border-slate-800 space-y-0.5">
-              <span className="text-[11px] text-slate-400">Profiling Floats</span>
-              <p className="text-xl font-bold font-mono text-emerald-400">
+              <span className="text-xs text-slate-400">Profiling Floats</span>
+              <p className="text-xl font-bold text-emerald-400">
                 {metadata.totalFloats}
               </p>
-              <span className="text-[10px] text-slate-500">Autonomous WMO Units</span>
+              <span className="text-[10px] text-slate-400">Autonomous WMO Units</span>
             </div>
             <div className="bg-navy-950 rounded-xl p-3 border border-slate-800 space-y-0.5">
-              <span className="text-[11px] text-slate-400">Monitored Basins</span>
-              <p className="text-xl font-bold font-mono text-indigo-400">
+              <span className="text-xs text-slate-400">Monitored Basins</span>
+              <p className="text-xl font-bold text-indigo-400">
                 {metadata.regions?.length || 0}
               </p>
-              <span className="text-[10px] text-slate-500">Oceans & Marginal Seas</span>
+              <span className="text-[10px] text-slate-400">Oceans & Marginal Seas</span>
             </div>
           </div>
         )}
 
         {/* Basin List */}
         <div className="space-y-2 pt-2">
-          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
+          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
             Coverage by Ocean Basin
           </h4>
           <div className="space-y-2">
@@ -105,7 +105,7 @@ const FleetOverviewModal = ({ isOpen, onClose }) => {
                     {r.region}
                   </h5>
                   <p className="text-xs text-slate-400">
-                    <span className="font-mono text-cyan-400">{r.profilesCount}</span> profiles • Observed{' '}
+                    <span className="text-cyan-400 font-semibold">{r.profilesCount}</span> profiles • Observed{' '}
                     {new Date(r.firstObservation).getFullYear()}–{new Date(r.lastObservation).getFullYear()}
                   </p>
                 </div>

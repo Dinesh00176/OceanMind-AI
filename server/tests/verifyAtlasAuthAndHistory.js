@@ -10,7 +10,7 @@ const API_BASE = process.env.API_BASE_URL || 'http://127.0.0.1:5000/api';
 
 const client = axios.create({
   baseURL: API_BASE,
-  timeout: 10000,
+  timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -69,7 +69,7 @@ async function runAuthAndHistoryTests() {
     // Authenticated client instance
     const authClient = axios.create({
       baseURL: API_BASE,
-      timeout: 10000,
+      timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,

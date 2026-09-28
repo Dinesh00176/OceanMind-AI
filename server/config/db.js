@@ -94,6 +94,21 @@ const connectDB = async () => {
     console.error(' 2. In MongoDB Atlas, ensure Network Access allows your IP (Add IP Address: 0.0.0.0/0 for cloud deployments).');
     console.error(' 3. Confirm Database User credentials and permissions (readWrite on target database).\n');
 
+    if (process.env.NODE_ENV !== 'production' && !mongoURI.includes('127.0.0.1:27017')) {
+      console.warn('[Database Notice] Atlas connection failed. Attempting local development MongoDB fallback at mongodb://127.0.0.1:27017/argo_ocean_db...');
+      try {
+        const localConn = await mongoose.connect('mongodb://127.0.0.1:27017/argo_ocean_db', {
+          maxPoolSize: 10,
+          serverSelectionTimeoutMS: 5000,
+        });
+        isConnected = true;
+        console.log('[Database] Local MongoDB connected successfully as development fallback.');
+        return localConn;
+      } catch (localErr) {
+        console.error('[Database] Local fallback also failed:', localErr.message);
+      }
+    }
+
     if (process.env.NODE_ENV === 'production') {
       process.exit(1);
     }

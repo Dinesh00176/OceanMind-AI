@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Waves, History, Database, User, LogOut, PlusCircle, BookOpen, Compass, BarChart2 } from 'lucide-react';
+import { Waves, History, Database, User, LogOut, BookOpen, Compass, BarChart2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useQuery } from '../context/QueryContext';
 import { dataApi } from '../services/api';
@@ -26,7 +26,6 @@ const Navbar = ({ onOpenAuth, onOpenHistory, onOpenFleet, onOpenKnowledge }) => 
   return (
     <header className="border-b border-slate-800 bg-navy-900/95 backdrop-blur-md sticky top-0 z-40 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        
         {/* Brand & Identity */}
         <div className="flex items-center space-x-3 cursor-pointer" onClick={resetAnalysis}>
           <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shadow-lg">
@@ -36,20 +35,20 @@ const Navbar = ({ onOpenAuth, onOpenHistory, onOpenFleet, onOpenKnowledge }) => 
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-lg tracking-tight text-slate-100 font-mono">
+              <span className="font-bold text-lg tracking-tight text-slate-100">
                 ARGO Ocean AI
               </span>
-              <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-navy-950 text-cyan-300 border border-slate-800">
-                Scientific
+              <span className="text-[10px] uppercase font-medium px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/60">
+                Oceanographic Platform
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
-              Oceanographic Analysis & Knowledge Platform
+              Autonomous Float Observations & Science
             </p>
           </div>
         </div>
 
-        {/* Center Navigation Links (Matching Section 22 layout) */}
+        {/* Center Navigation Links */}
         <nav className="hidden lg:flex items-center space-x-1 text-xs font-medium text-slate-300">
           <button
             onClick={resetAnalysis}
@@ -59,11 +58,15 @@ const Navbar = ({ onOpenAuth, onOpenHistory, onOpenFleet, onOpenKnowledge }) => 
             <span>Explore</span>
           </button>
           <button
-            onClick={() => executeQuery('Show the temperature and salinity profile at different depths in the Indian Ocean.')}
+            onClick={() =>
+              executeQuery(
+                'Show the temperature and salinity profile at different depths in the Indian Ocean.'
+              )
+            }
             className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-slate-800/60 transition flex items-center space-x-1.5"
           >
             <BarChart2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Analysis</span>
+            <span>Depth Profiles</span>
           </button>
           <button
             onClick={onOpenKnowledge}
@@ -83,7 +86,6 @@ const Navbar = ({ onOpenAuth, onOpenHistory, onOpenFleet, onOpenKnowledge }) => 
 
         {/* Action Controls */}
         <div className="flex items-center space-x-2 sm:space-x-3">
-          
           {/* Knowledge Button for Mobile/Tablet */}
           <button
             onClick={onOpenKnowledge}
@@ -102,7 +104,7 @@ const Navbar = ({ onOpenAuth, onOpenHistory, onOpenFleet, onOpenKnowledge }) => 
             <History className="w-4 h-4 text-slate-300" />
             <span className="hidden sm:inline">History</span>
             {queryHistory.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-700 text-white font-mono">
+              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-700 text-white font-semibold">
                 {queryHistory.length}
               </span>
             )}
@@ -134,9 +136,7 @@ const Navbar = ({ onOpenAuth, onOpenHistory, onOpenFleet, onOpenKnowledge }) => 
               <span>Sign In</span>
             </button>
           )}
-
         </div>
-
       </div>
     </header>
   );

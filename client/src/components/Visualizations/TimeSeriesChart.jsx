@@ -2,7 +2,6 @@ import React from 'react';
 import {
   ComposedChart,
   Line,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,7 +10,15 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const TimeSeriesChart = ({ trend, historical, forecast, parameter, unit, depth, trendSummary }) => {
+const TimeSeriesChart = ({
+  trend,
+  historical,
+  forecast,
+  parameter,
+  unit,
+  depth,
+  trendSummary,
+}) => {
   // Combine historical and forecast data if this is a prediction view
   const isForecast = Array.isArray(forecast) && forecast.length > 0;
 
@@ -69,17 +76,17 @@ const TimeSeriesChart = ({ trend, historical, forecast, parameter, unit, depth, 
     if (active && payload && payload.length) {
       const item = payload[0].payload;
       return (
-        <div className="bg-navy-900 border border-slate-700 p-3 rounded-lg shadow-xl text-xs space-y-1">
+        <div className="bg-navy-900 border border-slate-700 p-3 rounded-xl shadow-xl text-xs space-y-1">
           <p className="font-semibold text-slate-200">Month: {label}</p>
           {item.observed !== null && item.observed !== undefined && (
-            <p className="text-cyan-400">
-              Observed {parameter}: <span className="font-mono font-bold">{item.observed} {unit}</span>
+            <p className="text-cyan-400 font-medium">
+              Observed {parameter}: <span className="font-bold">{item.observed} {unit}</span>
             </p>
           )}
           {item.predicted !== null && item.predicted !== undefined && (
             <>
-              <p className="text-amber-400">
-                Forecasted {parameter}: <span className="font-mono font-bold">{item.predicted} {unit}</span>
+              <p className="text-amber-400 font-medium">
+                Forecasted {parameter}: <span className="font-bold">{item.predicted} {unit}</span>
               </p>
               {item.uncertainty_margin && (
                 <p className="text-slate-400 text-[10px]">
@@ -90,15 +97,15 @@ const TimeSeriesChart = ({ trend, historical, forecast, parameter, unit, depth, 
           )}
           <div className="pt-1 mt-1 border-t border-slate-800 flex items-center justify-between text-[10px]">
             <span
-              className={`px-1.5 py-0.5 rounded font-mono uppercase ${
+              className={`px-2 py-0.5 rounded font-medium ${
                 item.type === 'observed'
-                  ? 'bg-cyan-950 text-cyan-400 border border-cyan-800'
-                  : 'bg-amber-950 text-amber-400 border border-amber-800'
+                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                  : 'bg-amber-950 text-amber-300 border border-amber-800'
               }`}
             >
               {item.type === 'observed' ? 'Real Observed Data' : 'Validated ML Forecast'}
             </span>
-            {item.count && <span className="text-slate-500">{item.count} profiles</span>}
+            {item.count && <span className="text-slate-400">{item.count} profiles</span>}
           </div>
         </div>
       );
@@ -109,17 +116,17 @@ const TimeSeriesChart = ({ trend, historical, forecast, parameter, unit, depth, 
   return (
     <div className="w-full flex flex-col space-y-3">
       <div className="flex items-center justify-between text-xs text-slate-400">
-        <span>
+        <span className="font-semibold text-slate-200">
           Time-Series Evolution {depth !== undefined && depth !== null ? `@ ${depth}m Depth` : ''}
         </span>
-        <div className="flex items-center space-x-3 text-[11px]">
-          <span className="flex items-center space-x-1 text-cyan-400">
+        <div className="flex items-center space-x-3 text-xs">
+          <span className="flex items-center space-x-1.5 text-cyan-400">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
             <span>Observed ARGO History</span>
           </span>
           {isForecast && (
-            <span className="flex items-center space-x-1 text-amber-400">
-              <span className="w-2.5 h-0.5 bg-amber-400 border-dashed" />
+            <span className="flex items-center space-x-1.5 text-amber-400">
+              <span className="w-3 h-0.5 bg-amber-400 border-dashed" />
               <span>Projected 12-Month Trend</span>
             </span>
           )}
@@ -183,28 +190,46 @@ const TimeSeriesChart = ({ trend, historical, forecast, parameter, unit, depth, 
 
       {/* Deterministic Trend Summary Analytics */}
       {trendSummary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-navy-950/80 border border-slate-800 text-xs font-mono">
-          <div className="p-2.5 rounded-lg bg-navy-900/60 border border-slate-800/80">
-            <span className="text-slate-400 text-[11px] block">Start ({trendSummary.start_period})</span>
-            <span className="text-slate-100 font-bold text-sm">{trendSummary.start_value ?? 'N/A'} {unit}</span>
-          </div>
-          <div className="p-2.5 rounded-lg bg-navy-900/60 border border-slate-800/80">
-            <span className="text-slate-400 text-[11px] block">End ({trendSummary.end_period})</span>
-            <span className="text-slate-100 font-bold text-sm">{trendSummary.end_value ?? 'N/A'} {unit}</span>
-          </div>
-          <div className="p-2.5 rounded-lg bg-navy-900/60 border border-slate-800/80">
-            <span className="text-slate-400 text-[11px] block">Net Change</span>
-            <span className={`font-bold text-sm ${trendSummary.change > 0 ? 'text-amber-400' : trendSummary.change < 0 ? 'text-cyan-400' : 'text-slate-200'}`}>
-              {trendSummary.change !== null && trendSummary.change !== undefined ? `${trendSummary.change >= 0 ? '+' : ''}${trendSummary.change} ${unit}` : 'N/A'}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-navy-950/80 border border-slate-800 text-xs">
+          <div className="p-3 rounded-xl bg-navy-900/60 border border-slate-800/80">
+            <span className="text-slate-400 text-xs block">Start ({trendSummary.start_period})</span>
+            <span className="text-slate-100 font-bold text-sm mt-0.5 block">
+              {trendSummary.start_value ?? 'N/A'} {unit}
             </span>
           </div>
-          <div className="p-2.5 rounded-lg bg-navy-900/60 border border-slate-800/80">
-            <span className="text-slate-400 text-[11px] block">Trend Direction</span>
-            <span className={`inline-flex items-center px-2 py-0.5 mt-0.5 rounded text-xs font-bold ${
-              trendSummary.trend_direction === 'Increasing' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-              trendSummary.trend_direction === 'Decreasing' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' :
-              'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-            }`}>
+          <div className="p-3 rounded-xl bg-navy-900/60 border border-slate-800/80">
+            <span className="text-slate-400 text-xs block">End ({trendSummary.end_period})</span>
+            <span className="text-slate-100 font-bold text-sm mt-0.5 block">
+              {trendSummary.end_value ?? 'N/A'} {unit}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl bg-navy-900/60 border border-slate-800/80">
+            <span className="text-slate-400 text-xs block">Net Change</span>
+            <span
+              className={`font-bold text-sm mt-0.5 block ${
+                trendSummary.change > 0
+                  ? 'text-amber-400'
+                  : trendSummary.change < 0
+                  ? 'text-cyan-400'
+                  : 'text-slate-200'
+              }`}
+            >
+              {trendSummary.change !== null && trendSummary.change !== undefined
+                ? `${trendSummary.change >= 0 ? '+' : ''}${trendSummary.change} ${unit}`
+                : 'N/A'}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl bg-navy-900/60 border border-slate-800/80">
+            <span className="text-slate-400 text-xs block">Trend Direction</span>
+            <span
+              className={`inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-semibold ${
+                trendSummary.trend_direction === 'Increasing'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : trendSummary.trend_direction === 'Decreasing'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+              }`}
+            >
               {trendSummary.trend_direction || 'Relatively Stable'}
             </span>
           </div>

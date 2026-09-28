@@ -72,7 +72,7 @@ const ArgoMap = ({ markers = [], center = [15.0, 75.0] }) => {
               <Popup>
                 <div className="p-1 space-y-1.5 text-xs font-sans">
                   <div className="border-b border-slate-700 pb-1 flex items-center justify-between">
-                    <span className="font-bold text-cyan-400 font-mono">
+                    <span className="font-bold text-cyan-400">
                       Float #{m.floatId}
                     </span>
                     <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
@@ -84,19 +84,19 @@ const ArgoMap = ({ markers = [], center = [15.0, 75.0] }) => {
                       Region: <span className="font-semibold text-white">{m.region}</span>
                     </p>
                     <p>
-                      Date: <span className="font-mono text-slate-400">{new Date(m.timestamp).toLocaleDateString()}</span>
+                      Date: <span className="text-slate-400">{new Date(m.timestamp).toLocaleDateString()}</span>
                     </p>
-                    <p className="font-mono text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-400">
                       Pos: {m.coordinates[0]?.toFixed(2)}°N, {m.coordinates[1]?.toFixed(2)}°E
                     </p>
                     {m.temperature !== null && (
                       <p className="text-cyan-400">
-                        Surface Temp: <span className="font-mono font-bold">{m.temperature} °C</span>
+                        Surface Temp: <span className="font-bold">{m.temperature} °C</span>
                       </p>
                     )}
                     {m.salinity !== null && (
                       <p className="text-emerald-400">
-                        Salinity: <span className="font-mono font-bold">{m.salinity} PSU</span>
+                        Salinity: <span className="font-bold">{m.salinity} PSU</span>
                       </p>
                     )}
                   </div>

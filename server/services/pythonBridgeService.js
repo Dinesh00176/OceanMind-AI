@@ -90,35 +90,40 @@ class PythonBridgeService {
 
     // Explanation & Knowledge triggers
     const hasExplanation = /\b(why is|why does|why are|why was|explain why|how come|cause of|reasons? for|mechanism of|what causes)\b/.test(qLower);
-    const isPureKnowledge = /\b(what is an argo float|how does an? argo float work|what is (gdac|dac|the argo data system)|what are argo quality-control|qc flags?|importance of argo|what is (a )?(thermocline|halocline|ctd))\b/.test(qLower);
+    const isPureKnowledge = /\b(what is (the )?argo program|what is argo\b|tell me about argo\b|what is an? argo float|what are argo floats|how does (an? argo float|the float|it) work|how (does|do) (the float|argo floats?|it) (move|sink|ascend|come back to the surface|surface|reach the surface)|why (does|do) (the float|argo floats?|it) (go deeper|sink|ascend)|what is (gdac|dac|dacs|the argo data system)|what are argo quality-control|qc flags?|importance of argo|why is argo important|why (does argo|do floats) measure salinity|what is ctd|what is (a )?(thermocline|halocline|pycnocline))\b/.test(qLower);
     const hasNumericalObservation = /\b(\d{1,4}\s*(?:m|meters?|dbar)|is\s+\d+(\.\d+)?\s*(?:°c|c|psu)|average|profile|trend|compare|in 2024|during \d{4})\b/.test(qLower);
 
     let intent = 'average';
+    let mode = 1;
     let requiresRAG = false;
     let requiresDataAnalysis = true;
 
     if (hasExplanation && hasNumericalObservation) {
       intent = 'hybrid';
+      mode = 3;
       requiresRAG = true;
       requiresDataAnalysis = true;
     } else if (isPureKnowledge || (hasExplanation && !hasNumericalObservation)) {
       intent = 'knowledge';
+      mode = 2;
       requiresRAG = true;
       requiresDataAnalysis = false;
     }
 
     // Parameters
     const parameters = [];
-    if (/\b(temp|temperature|thermal|warmth|heat|sst)\b/.test(qLower)) parameters.push('temperature');
-    if (/\b(salinity|salt|psu)\b/.test(qLower)) parameters.push('salinity');
-    if (/\b(pressure|pres|dbar)\b/.test(qLower)) parameters.push('pressure');
-    if (/\b(oxygen|doxy)\b/.test(qLower)) parameters.push('dissolved_oxygen');
+    if (mode !== 2) {
+      if (/\b(temp|temperature|thermal|warmth|heat|sst)\b/.test(qLower)) parameters.push('temperature');
+      if (/\b(salinity|salt|psu)\b/.test(qLower)) parameters.push('salinity');
+      if (/\b(pressure|pres|dbar)\b/.test(qLower)) parameters.push('pressure');
+      if (/\b(oxygen|doxy)\b/.test(qLower)) parameters.push('dissolved_oxygen');
 
-    if (!parameters.length) {
-      if (isContextRef && context && context.parameters) {
-        parameters.push(...context.parameters);
-      } else {
-        parameters.push('temperature');
+      if (!parameters.length) {
+        if (isContextRef && context && context.parameters) {
+          parameters.push(...context.parameters);
+        } else {
+          parameters.push('temperature');
+        }
       }
     }
 
@@ -152,7 +157,20 @@ class PythonBridgeService {
       bounds = landmark.bounds;
     }
 
-    const region = regions.length ? regions[0] : (intent === 'knowledge' ? null : 'Indian Ocean');
+    // Generalized ocean check (e.g. "the temp at ocean", "temp at ocean", "what is ocean temperature")
+    const isGeneralizedOcean = /(the\s+)?(temp|temperature|salinity|conditions?)\s+(at|in|of)?\s*(the\s+)?(ocean|sea)/i.test(qLower) ||
+      /(ocean|sea)\s+(temp|temperature|salinity)/i.test(qLower) ||
+      /what (is|was) the (temp|temperature|salinity)\s+(at|in|of)\s+(the\s+)?(ocean|sea)/i.test(qLower);
+
+    let isAmbiguous = false;
+    let clarificationMessage = null;
+
+    if (isGeneralizedOcean && regions.length === 0 && !landmark && intent !== 'knowledge' && intent !== 'hybrid') {
+      isAmbiguous = true;
+      clarificationMessage = 'Which ocean region or depth layer would you like to analyze? You can specify the Indian Ocean, Arabian Sea, Bay of Bengal, Pacific, or Atlantic Ocean.';
+    }
+
+    const region = regions.length ? regions[0] : (intent === 'knowledge' || isAmbiguous ? null : 'Indian Ocean');
 
     // Intent refinement if not knowledge/hybrid
     let operation = intent === 'hybrid' ? 'hybrid_analysis' : (intent === 'knowledge' ? 'knowledge_retrieval' : 'average');
@@ -299,11 +317,12 @@ class PythonBridgeService {
       visualization,
       requiresRAG,
       requiresDataAnalysis,
-      requiresClarification: false,
-      missingFields: [],
+      requiresClarification: isAmbiguous,
+      missingFields: isAmbiguous ? ['region'] : [],
       is_prediction: isPrediction,
       forecast_months: isPrediction ? 12 : 0,
-      is_ambiguous: false,
+      is_ambiguous: isAmbiguous,
+      clarification_message: clarificationMessage,
       raw_query: query,
     };
   }

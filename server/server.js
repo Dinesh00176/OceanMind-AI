@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB Atlas / Local MongoDB
-connectDB();
+connectDB().catch((err) => console.error('[Server DB Error]', err.message));
 
 // Security Middlewares
 app.use(helmet());

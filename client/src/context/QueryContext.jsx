@@ -12,6 +12,7 @@ export const QueryProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [queryHistory, setQueryHistory] = useState([]);
   const [contextMemory, setContextMemory] = useState(null);
+  const [selectedMode, setSelectedMode] = useState('auto'); // 'auto' | 'data' | 'rag' | 'hybrid'
 
   // Fetch history when user logs in
   useEffect(() => {
@@ -33,15 +34,17 @@ export const QueryProvider = ({ children }) => {
     }
   };
 
-  const executeQuery = async (queryText) => {
+  const executeQuery = async (queryText, explicitMode = null) => {
     if (!queryText || !queryText.trim()) return;
 
     setIsLoading(true);
     setError(null);
     setCurrentQuery(queryText);
 
+    const modeToUse = explicitMode || selectedMode || 'auto';
+
     try {
-      const res = await queryApi.submitQuery(queryText, contextMemory);
+      const res = await queryApi.submitQuery(queryText, contextMemory, modeToUse);
       if (res.data.success) {
         setResult(res.data);
         if (res.data.context) {
@@ -126,6 +129,8 @@ export const QueryProvider = ({ children }) => {
         error,
         queryHistory,
         contextMemory,
+        selectedMode,
+        setSelectedMode,
         executeQuery,
         resetAnalysis,
         loadFromHistory,
